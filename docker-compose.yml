@@ -1,0 +1,25 @@
+services:
+  local-scheduler:
+    build: .
+    container_name: ezy-local-scheduler
+    ports:
+      - '4500:4500'
+    environment:
+      PORT: 4500
+      # `host.docker.internal` reaches the host from inside the container —
+      # works whether your backend runs on the host or in another container.
+      # (For community-api: the internal scheduled-callback endpoint + secret.)
+      DEFAULT_TARGET_URL: ${DEFAULT_TARGET_URL:-http://host.docker.internal:3333/api/internal/feed/publish-scheduled}
+      DEFAULT_AUTH_HEADER: ${DEFAULT_AUTH_HEADER:-}
+      POLL_INTERVAL_MS: ${POLL_INTERVAL_MS:-1000}
+      MAX_ATTEMPTS: ${MAX_ATTEMPTS:-5}
+      RETRY_BACKOFF_MS: ${RETRY_BACKOFF_MS:-5000}
+      STORE_FILE: /data/store.json
+    volumes:
+      - scheduler-data:/data
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    restart: unless-stopped
+
+volumes:
+  scheduler-data:

@@ -1,0 +1,12 @@
+{
+  "name": "ezy-local-scheduler",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local stand-in for AWS EventBridge Scheduler + SQS. Schedules a payload and POSTs it to a target endpoint at the exact time, with retries + dead-letter. Zero dependencies.",
+  "engines": {"node": ">=20.6"},
+  "scripts": {
+    "start": "node scheduler.mjs",
+    "dev": "node --watch scheduler.mjs"
+  }
+}
