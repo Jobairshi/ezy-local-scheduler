@@ -115,6 +115,19 @@ curl -s localhost:4500/schedules    # watch it disappear after firing
 Make a **temporary** change so your scheduler posts here instead of AWS, then
 revert it when done. Two patterns:
 
+> **⚠️ Which `LOCAL_SCHEDULER_URL` host?** It depends on where *your backend*
+> runs, not where this tool runs:
+> - Backend runs on the **host** (e.g. `pnpm dev`, `node`, bare process) →
+>   `LOCAL_SCHEDULER_URL=http://localhost:4500`
+> - Backend runs **inside a container** (Docker/compose) →
+>   `LOCAL_SCHEDULER_URL=http://host.docker.internal:4500`
+>   (`localhost` inside a container is the container itself, not your machine).
+>
+> Same rule, reversed, for this tool's `DEFAULT_TARGET_URL` (where *it* delivers):
+> if this tool runs in Docker but your backend is on the host, use
+> `http://host.docker.internal:<backend-port>`. On Linux, add
+> `extra_hosts: ["host.docker.internal:host-gateway"]` (already in the compose file).
+
 ### Generic (any backend, any language)
 
 Wherever you'd call AWS to schedule something, instead:
