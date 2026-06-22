@@ -150,12 +150,21 @@ async function deliver(schedule) {
 }
 
 function processSchedule(schedule) {
-  const {name} = schedule;
+  const {name, createdAtMs} = schedule;
   inFlight.add(name);
   deliver(schedule)
     .then(() => {
-      delete store.schedules[name]; // fire-once (mirrors ActionAfterCompletion: DELETE)
-      persist();
+      // Fire-once (mirrors ActionAfterCompletion: DELETE) — but ONLY if the
+      // target didn't re-arm this same name DURING delivery. A rolling chain
+      // (e.g. event reminders) schedules its next fire from inside the callback;
+      // that overwrites store.schedules[name] with a fresh createdAtMs. Deleting
+      // unconditionally here would wipe that next fire and kill the chain.
+      // (In prod this race can't happen: EventBridge deletes right after the SQS
+      // enqueue, long before the async Lambda/callback re-arms.)
+      if (store.schedules[name]?.createdAtMs === createdAtMs) {
+        delete store.schedules[name];
+        persist();
+      }
       log(`✓ delivered "${name}" → ${schedule.url || CONFIG.defaultTargetUrl}`);
     })
     .catch(err => {
